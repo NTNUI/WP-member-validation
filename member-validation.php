@@ -19,7 +19,7 @@ function wpdocs_register_my_api_keys_page() {
         'manage_options',
         'NTNUI-api-keys',
         'add_api_keys_callback',
-        plugin_dir_url( __FILE__ ).'/logo.png'
+        plugin_dir_url( __FILE__ ).'/img/logo.png'
     );
 }
  
