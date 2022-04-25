@@ -1,7 +1,7 @@
 <?php
 
 function getMemberData(){
-	$url = ("https://api.ntnui.no/groups/". get_option('group_slug') . "/memberships/");
+	$url = ("https://api.ntnui.no/groups/". get_option('group_slug') . "/memberships/?page_size=1000");
 
 	$curl = curl_init($url);
 	curl_setopt($curl, CURLOPT_URL, $url);
