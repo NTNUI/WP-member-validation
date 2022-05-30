@@ -1,91 +1,61 @@
 <?php
 
-function getMemberData(){
-	$url = ("https://api.ntnui.no/groups/". get_option('group_slug') . "/memberships/?page_size=1000");
+function getMemberInfo($phone, $password){
+	$url = ("https://api.ntnui.no/users/profile/");
 
 	$curl = curl_init($url);
 	curl_setopt($curl, CURLOPT_URL, $url);
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
+	$auth = base64_encode($phone . ":" . $password);
+
 	$headers = array(
-	   "API-KEY: ". get_option('api_key'),
+	   "Authorization: Basic " . $auth,
 	);
 	curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
-
 	$resp = curl_exec($curl);
 	curl_close($curl);
-	
-	return json_decode($resp, true);
-}
-
-function validLogin($phone, $password){
-	$url = ("https://api.ntnui.no/token/");
-
-	$fields = [
-		'phone_number'	=> $phone,
-		'password' 		=> $password,
-	];
-	$fields_string = http_build_query($fields);
-	$curl = curl_init();
-
-	//Post request options
-	curl_setopt($curl,CURLOPT_URL, $url);
-	curl_setopt($curl,CURLOPT_POST, true);
-	curl_setopt($curl,CURLOPT_POSTFIELDS, $fields_string);
-	curl_setopt($curl,CURLOPT_RETURNTRANSFER, true); 
-	$resp = curl_exec($curl);
 
 	$data = json_decode($resp, true);
-	//Return true if refresh-token is obtained
-	if(isset($data["refresh"])){
-		return true;
-	}
-	return false;
-	//validLogin($_POST['phone'], $_POST['password']);
+
+	return $data;
 }
 
 //For debugging
-// function console_log( $data ) {
-//     $output  = "<script>console.log( '";
-//     $output .= json_encode(print_r($data, true));
-//     $output .= "' );</script>";
-//     echo $output;
-// }
+//  function console_log( $data ) {
+//      $output  = "<script>console.log( '";
+//      $output .= json_encode(print_r($data, true));
+//      $output .= "' );</script>";
+//      echo $output;
+//  }
 
 function main(){
-	 $data = getMemberData();
-	 if (JSON_ERROR_NONE !== json_last_error()) {
-		return "Looks like something is wrong with the configuration!";
-    }
 	//User with correct premissions has to be configured before use
-	if(!get_option('login_username')){
+	if(!get_option('login_username') || !get_option('group_slug')){
 		return "Looks like something is wrong with the configuration!";
 	}
 
 	if ( isset( $_POST['registerForm'] ) ) {
 
-		if(validLogin($_POST['phone'], $_POST['password'])){
-			foreach ($data["results"] as $user){
+		$memberInfo = getMemberInfo($_POST['phone'], $_POST['password']);
 		
-				$phone_number = $user["phone_number"];
-		
-				if($_POST['phone'] == $phone_number){
+		if(isset($memberInfo["memberships"])){
+			foreach ($memberInfo["memberships"] as $membership){
+				if($membership["group"] == get_option('group_slug') && $memberInfo["contract_expiry_date"] > date("Y-m-d")){
 					//If NTNUI membership is active (expires after today)
-					if ($user["ntnui_contract_expiry_date"] > date("Y-m-d")) {
-						//Access to rent
-						//Login to user with the correct permissions
-						$user_login = get_option('login_username'); 
-						$user = get_userdatabylogin($user_login);
-						$user_id = $user->ID; 
-						wp_set_current_user($user_id, $user_login);
-						wp_set_auth_cookie($user_id); 
-						do_action('wp_login', $user_login); 
+					//Access to rent
+					//Login to user with the correct permissions
+					$user_login = get_option('login_username'); 
+					$user = get_userdatabylogin($user_login);
+					$user_id = $user->ID; 
+					wp_set_current_user($user_id, $user_login);
+					wp_set_auth_cookie($user_id); 
+					do_action('wp_login', $user_login); 
 
-						$response = "Login valid";
-						//Redirect to home page on login
-						header("location:". home_url());
-					}
+					$response = "Login valid";
+					//Redirect to home page on login
+					header("location:". home_url());
 				}
 			}
 			if(!isset($response)){
