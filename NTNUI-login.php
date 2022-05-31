@@ -42,11 +42,26 @@ function main(){
 		
 		if(isset($memberInfo["memberships"])){
 			foreach ($memberInfo["memberships"] as $membership){
+				//If NTNUI membership is active (expires after today) and part of group
 				if($membership["group"] == get_option('group_slug') && $memberInfo["contract_expiry_date"] > date("Y-m-d")){
-					//If NTNUI membership is active (expires after today)
 					//Access to rent
+					//Register user if not in database
+					$username = strtolower($memberInfo["first_name"].".".$memberInfo["last_name"]);
+					if ( !username_exists($username)  && !email_exists($memberInfo["email"]) ) {
+						$userdata = array(
+							'user_login' =>  $username,
+							'user_pass'  =>  $_POST['password'],
+							'user_email'  =>  $memberInfo["email"],
+							'first_name'  =>  $memberInfo["first_name"],
+							'last_name'  =>  $memberInfo["last_name"],
+							'show_admin_bar_front'  =>  "false",
+							'role'  =>  get_option('access_type', 'subscriber'), #Preferred role fetched from preferences, default to subscriber if none is set
+						);
+						 
+						$user_id = wp_insert_user( $userdata );
+					}
 					//Login to user with the correct permissions
-					$user_login = get_option('login_username'); 
+					$user_login = $username; 
 					$user = get_userdatabylogin($user_login);
 					$user_id = $user->ID; 
 					wp_set_current_user($user_id, $user_login);
