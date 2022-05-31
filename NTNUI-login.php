@@ -31,14 +31,20 @@ function getMemberInfo($phone, $password){
 //  }
 
 function main(){
-	//User with correct premissions has to be configured before use
-	if(!get_option('login_username') || !get_option('group_slug')){
-		return "Looks like something is wrong with the configuration!";
+	if(!get_option('group_slug')){
+		return "Group name is not set in the configuration!";
 	}
 
 	if ( isset( $_POST['registerForm'] ) ) {
+		//Add +47 if number not contain country code
+		if(strlen($_POST['phone']) == 8 ){
+			$phone = "+47".$_POST['phone'];
+		}
+		else{
+			$phone = $_POST['phone'];
+		}
 
-		$memberInfo = getMemberInfo($_POST['phone'], $_POST['password']);
+		$memberInfo = getMemberInfo($phone, $_POST['password']);
 		
 		if(isset($memberInfo["memberships"])){
 			foreach ($memberInfo["memberships"] as $membership){
@@ -74,7 +80,7 @@ function main(){
 				}
 			}
 			if(!isset($response)){
-				$response = "No valid membership in NTNUI/Seiling";
+				$response = "No valid membership in NTNUI/".get_option('group_slug');
 			}
 		}
 		else{
