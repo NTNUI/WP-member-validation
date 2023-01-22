@@ -52,7 +52,7 @@ function main(){
 				if($membership["group"] == get_option('group_slug') && $memberInfo["contract_expiry_date"] > date("Y-m-d")){
 					//Access to rent
 					//Register user if not in database
-					$username = strtolower(trim($phone, "+").$memberInfo["last_name"]);
+					$username = trim($phone, "+");
 					if ( !username_exists($username)  && !email_exists($memberInfo["email"]) ) {
 						$userdata = array(
 							'user_login' =>  $username,
