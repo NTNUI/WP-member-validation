@@ -68,11 +68,12 @@ function main(){
 					}
 					//Login to user with the correct permissions
 					$user_login = $username; 
-					$user = get_userdatabylogin($user_login);
+					$user = get_user_by("login" ,$user_login);
 					$user_id = $user->ID; 
 					wp_set_current_user($user_id, $user_login);
 					wp_set_auth_cookie($user_id); 
-					do_action('wp_login', $user_login); 
+					// Do action uses two arguments in order to work together with the woocommerce plugin.
+					do_action('wp_login', $user_login->$user_login, $user_login);
 
 					$response = "Login valid";
 					//Redirect to home page on login

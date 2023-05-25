@@ -3,7 +3,7 @@
  * Plugin Name: NTNUI Member Integration
  * Description: Log users in to a given account if they are registerd members of given group and NTNUI (Together with e.g. WPFront User Role Editor users can get permission to view restricted pages etc.)
  * Author: Eivind Dalholt
- * Version: 2.0.0
+ * Version: 2.0.1
  */
 
 require_once dirname( __FILE__ ) .'/NTNUI-login.php';
